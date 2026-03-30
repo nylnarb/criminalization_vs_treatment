@@ -16,6 +16,10 @@ If not, run the data processing script first:
 python src/02_data_processing.py
 ```
 
+## Data Retrieval
+
+Raw Data is not included in this repo. Current repo only works with processed data. If user wishes to personalize refer to Criminalization Vs. Treatment.md to find corresponding data.
+
 ## Quick Start
 
 The notebook is configured with parameters at the top of the configuration cell. Look for these variables:
