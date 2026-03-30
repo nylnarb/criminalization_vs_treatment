@@ -1,0 +1,103 @@
+=== EDA SUMMARY ===
+
+Clean observations: 377
+States: 49  |  Years: 2015-2022
+
+--- Criminalization Index ---
+count    377.000
+mean       1.294
+std        1.362
+min        0.009
+25%        0.393
+50%        0.996
+75%        1.595
+max       14.107
+
+--- Top 10 most criminalizing state-years ---
+        state  year  arrest_rate  treatment_rate  criminalization_index
+        Idaho  2019   546.121380       38.713433              14.106767
+New Hampshire  2022   234.486558       27.906437               8.402597
+        Idaho  2018   590.528905       75.126984               7.860410
+West Virginia  2020   332.793708       56.931791               5.845481
+    Louisiana  2016   644.255834      112.298118               5.737014
+West Virginia  2021   329.974365       58.576974               5.633175
+New Hampshire  2021   261.919945       49.191976               5.324444
+West Virginia  2019   355.031214       75.936620               4.675362
+        Texas  2016   528.868153      116.020535               4.558401
+    Louisiana  2015   589.567749      134.392648               4.386905
+
+--- Top 10 most treatment-oriented state-years ---
+       state  year  arrest_rate  treatment_rate  criminalization_index
+    Illinois  2019     2.881612      324.510198               0.008880
+     Alabama  2020     2.677192      262.119609               0.010214
+    New York  2021    17.410114      753.566600               0.023104
+  New Jersey  2021    19.103264      722.263663               0.026449
+Pennsylvania  2020     4.994183      147.504257               0.033858
+Pennsylvania  2021     6.321965      113.941861               0.055484
+    Maryland  2020    22.956050      311.728587               0.073641
+     Vermont  2015   109.159852     1377.584567               0.079240
+    Maryland  2021    41.587075      516.512443               0.080515
+ Connecticut  2022    83.764455      903.631556               0.092698
+
+--- Average Criminalization Index by state (2015-2022) ---
+         state  avg_index
+         Idaho   6.664187
+ West Virginia   3.803023
+         Texas   3.706452
+     Louisiana   3.616514
+ New Hampshire   3.545227
+     Tennessee   2.657554
+        Nevada   2.448984
+     Wisconsin   2.101429
+       Montana   1.991554
+      Virginia   1.638032
+  Pennsylvania   1.637632
+      Arkansas   1.636154
+       Arizona   1.619765
+   Mississippi   1.536522
+    New Mexico   1.524166
+          Utah   1.446967
+    California   1.353801
+      Nebraska   1.345292
+  North Dakota   1.344418
+      Oklahoma   1.331595
+South Carolina   1.314922
+      Kentucky   1.273998
+       Florida   1.118584
+       Wyoming   1.113105
+       Georgia   1.103757
+      Missouri   1.080464
+          Ohio   0.921047
+  South Dakota   0.911784
+        Kansas   0.909366
+       Indiana   0.873657
+North Carolina   0.780612
+       Alabama   0.773533
+        Hawaii   0.696132
+    New Jersey   0.631392
+    Washington   0.571933
+      Delaware   0.552432
+         Maine   0.535447
+      Illinois   0.504559
+          Iowa   0.435522
+      Michigan   0.397556
+     Minnesota   0.363735
+      Colorado   0.259716
+      New York   0.219726
+      Maryland   0.216741
+        Alaska   0.196963
+  Rhode Island   0.191034
+       Vermont   0.132654
+   Connecticut   0.132516
+ Massachusetts   0.130715
+
+--- National trend (population-weighted) ---
+ year  arrest_rate  treatment_rate
+ 2015   401.554121      455.396671
+ 2016   437.853711      481.588636
+ 2017   426.429971      502.866546
+ 2018   420.830316      505.133706
+ 2019   358.597126      466.342734
+ 2020   273.771094      347.596056
+ 2021   188.218277      344.279325
+ 2022   227.691880      306.554745
