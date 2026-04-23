@@ -8,13 +8,18 @@ Arrests and treatment admissions may reflect structural policy choices
 The Question: 
 Does state demographic and socioeconomic structure explain variation in arrest-to-treatment ratios?
 
-Data Sources (to be merged) : 
+Data Sources: 
 FBI UCR / NIBRS → Drug arrest counts
-SAMHSA TEDS → Treatment admissions
+SAMHSA TEDS-A (Treatment Episode Data Set – Admissions) → Treatment admissions and treatment system characteristics
+SAMHSA N-SSATS (2015–2020) / N-SUMHSS (2021–2022) → Facility-level supply: bed capacity, ownership type, Medicaid acceptance
 U.S. Census ACS → Demographic & socioeconomic variables
+CDC WONDER → Drug overdose death counts
+Bureau of Justice Statistics / Vera Institute → State incarceration rates
+State legislative records → Governor party, legislature partisan composition, marijuana legalization
 
 https://www.fbi.gov/how-we-can-help-you/more-fbi-services-and-information/ucr/nibrs
 https://www.samhsa.gov/data/data-we-collect/teds-treatment-episode-data-set/datafiles/teds-a-2019
+https://www.samhsa.gov/data/data-we-collect/n-ssats-national-survey-substance-abuse-treatment-services
 https://www.census.gov/programs-surveys/acs.html
 
 Scope:
@@ -29,9 +34,27 @@ Variables Created:
 Drug Arrest Rate (per 100,000 residents)
 Treatment Admission Rate (per 100,000 residents)
 Criminalization Index = Arrest Rate / Treatment Rate
-Demographics
-Poverty rate
-Median income
+Demographics: poverty rate, median income, unemployment rate, racial composition
+Political/policy: governor party, presidential vote share, governor streak, legislature partisan control, marijuana legalization status
+Structural: incarceration rate, overdose death rate
+
+Treatment system characteristics (from TEDS-A, per state-year):
+  CJ referral % — share of admissions referred by courts or criminal justice
+  MAT adoption % — share of admissions receiving medication-assisted treatment
+  Opioid case mix % — share of admissions involving heroin, fentanyl, or other opioids
+  Meth case mix % — share of admissions involving methamphetamine or amphetamines
+  Dual diagnosis % — share of admissions with co-occurring psychiatric condition
+  Same-day access % — share of admissions with no wait for treatment
+  Residential % — share of admissions in inpatient or residential settings
+  Repeat treatment % — share of admissions with at least one prior episode
+
+Facility supply variables (from N-SSATS/N-SUMHSS, per state-year):
+  Facilities per 100k — licensed treatment centers per 100,000 residents
+  Beds per 100k — residential and inpatient beds per 100,000 residents
+  Public facility % — share of facilities that are government-operated
+  Private for-profit % — share of facilities that are private for-profit
+  Medicaid acceptance % — share of facilities accepting Medicaid
+  Capacity utilization — average bed occupancy among facilities with residential beds
 
 Target Variable: Criminalization Index = Arrest Rate / Treatment Rate
 
@@ -113,7 +136,7 @@ Idaho and Florida are excluded entirely from all analysis and visualizations due
 
 Illinois is retained but years 2020–2021 are excluded. NIBRS transition artifacts reduce Illinois arrest counts to near-zero in those years (arrest rate 2.2–2.9/100k vs. 84–187 in surrounding years), artificially inverting the index. The remaining six years (2015–2019, 2022) are consistent and comparable to other states. Several other states (Alabama, Maryland, New Jersey, New Mexico, New York, Pennsylvania) also have reduced reporting in 2020–2021 due to the NIBRS transition; affected state-years are excluded from modeling where noted.
 
-Geographic region indicators (Northeast, Midwest, West) are included as model features and rank among the strongest predictors of the Criminalization Index. This is a model limitation, not a finding. Region captures unmeasured structural variation — likely including treatment infrastructure capacity, harm reduction policy culture, and urban density — that is not represented in the current feature set. High regional importance signals that relevant variables are absent from the model rather than that geography itself causes variation in criminalization. Future work should incorporate treatment bed capacity per capita, drug court availability, and state behavioral health spending, which are not available in consistent series across all states and years in this study period.
+Geographic region indicators (Northeast, Midwest, West) are included as model features and rank among the strongest predictors of the Criminalization Index. This is a model limitation, not a finding. Region captures unmeasured structural variation — treatment infrastructure capacity, harm reduction policy culture, and urban density — that was not represented in the original feature set. The current version addresses this partially by incorporating N-SSATS/N-SUMHSS facility supply variables (beds per 100k, facilities per 100k, ownership mix, Medicaid acceptance, capacity utilization) and TEDS-A treatment system characteristics (MAT adoption, CJ referral share, opioid/meth case mix). If region importance declines in model runs with these variables included, it confirms that infrastructure and treatment system composition were driving the regional signal. Remaining regional variation likely reflects drug court availability, state behavioral health spending, harm reduction policy culture, and urban density patterns not captured in the current dataset.
 
 Key Findings:
 
