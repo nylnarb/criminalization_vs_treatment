@@ -28,19 +28,26 @@ def clean_state(s):
 # ── Load raw files ─────────────────────────────────────────────────────────────
 print("Loading raw datasets...")
 
-nibrs  = pd.read_csv(os.path.join(BASE, "data/raw/nibrs/nibrs_2015_2022_combined.csv"))
-teds   = pd.read_csv(os.path.join(BASE, "data/raw/teds/teds_2015_2022_combined.csv"))
-acs    = pd.read_csv(os.path.join(BASE, "data/raw/acs/acs_2015_2022_combined.csv"))
-mj     = pd.read_csv(os.path.join(BASE, "data/raw/policy/recreational_marijuana.csv"))
-gov    = pd.read_csv(os.path.join(BASE, "data/raw/policy/governor_party.csv"))
-cdc    = pd.read_csv(os.path.join(BASE, "data/raw/cdc/cdc_overdose_2015_2022.csv"))
-bjs    = pd.read_csv(os.path.join(BASE, "data/raw/bjs/bjs_incarceration_2015_2022.csv"))
-polft  = pd.read_csv(os.path.join(BASE, "data/raw/policy/political_features.csv"))
-legft  = pd.read_csv(os.path.join(BASE, "data/raw/policy/legislature_control.csv"))
+nibrs   = pd.read_csv(os.path.join(BASE, "data/raw/nibrs/nibrs_2015_2022_combined.csv"))
+teds    = pd.read_csv(os.path.join(BASE, "data/raw/teds/teds_2015_2022_combined.csv"))
+acs     = pd.read_csv(os.path.join(BASE, "data/raw/acs/acs_2015_2022_combined.csv"))
+mj      = pd.read_csv(os.path.join(BASE, "data/raw/policy/recreational_marijuana.csv"))
+gov     = pd.read_csv(os.path.join(BASE, "data/raw/policy/governor_party.csv"))
+cdc     = pd.read_csv(os.path.join(BASE, "data/raw/cdc/cdc_overdose_2015_2022.csv"))
+bjs     = pd.read_csv(os.path.join(BASE, "data/raw/bjs/bjs_incarceration_2015_2022.csv"))
+polft   = pd.read_csv(os.path.join(BASE, "data/raw/policy/political_features.csv"))
+legft   = pd.read_csv(os.path.join(BASE, "data/raw/policy/legislature_control.csv"))
+
+nsumhss_path = os.path.join(BASE, "data/raw/nsumhss/nsumhss_2015_2022.csv")
+nsumhss = pd.read_csv(nsumhss_path) if os.path.exists(nsumhss_path) else None
 
 for name, frame in [('NIBRS',nibrs),('TEDS',teds),('ACS',acs),('MJ',mj),
                      ('GOV',gov),('CDC',cdc),('BJS',bjs),('POLFT',polft),('LEGFT',legft)]:
     print(f"  {name}: {len(frame)} rows")
+if nsumhss is not None:
+    print(f"  N-SUMHSS: {len(nsumhss)} rows")
+else:
+    print("  N-SUMHSS: not found — run src/parse_nsumhss.py first")
 
 # ── Standardize state names ────────────────────────────────────────────────────
 for frame in [nibrs, teds, acs, mj, gov, bjs, polft, legft]:
@@ -69,9 +76,14 @@ nibrs.loc[fl_asr_mask, 'drug_arrests'] = np.nan
 
 # ── Merge core datasets ────────────────────────────────────────────────────────
 print("\nMerging datasets...")
+TEDS_COLS = [
+    'state','year','drug_treatment_admissions',
+    'cj_referral_pct','mat_pct','opioid_pct','meth_pct',
+    'dual_dx_pct','same_day_pct','residential_pct','repeat_tx_pct',
+]
 panel = pd.merge(
     nibrs[['state','year','drug_arrests']],
-    teds[['state','year','drug_treatment_admissions']],
+    teds[[c for c in TEDS_COLS if c in teds.columns]],
     on=['state','year'], how='outer',
 )
 panel = pd.merge(
@@ -96,6 +108,13 @@ panel = pd.merge(panel, legft[['state','year','senate_rep_pct','house_rep_pct',
                                 'gov_leg_alignment','align_unified_dem',
                                 'align_div_rep_gov','align_div_dem_gov']],
                  on=['state','year'], how='left')
+if nsumhss is not None:
+    nsumhss['state'] = nsumhss['state'].apply(clean_state)
+    panel = pd.merge(panel,
+                     nsumhss[['state','year','facilities_per_100k','beds_per_100k',
+                               'public_facility_pct','private_fp_pct',
+                               'medicaid_pct','capacity_utilization']],
+                     on=['state','year'], how='left')
 
 # ── Exclude Oregon ─────────────────────────────────────────────────────────────
 panel = panel[panel['state'] != 'Oregon'].copy()
@@ -121,7 +140,8 @@ panel.to_csv(out_path, index=False)
 ALL_FEATURES = ['arrest_rate','treatment_rate','criminalization_index',
                 'population','poverty_rate','overdose_death_rate',
                 'incarceration_rate','marijuana_legal','republican_gov',
-                'gov_streak','pres_vote_rep','senate_rep_pct','house_rep_pct']
+                'gov_streak','pres_vote_rep','senate_rep_pct','house_rep_pct',
+                'cj_referral_pct','mat_pct','opioid_pct','meth_pct']
 complete = panel.dropna(subset=ALL_FEATURES)
 
 print(f"\nSaved: {out_path}")

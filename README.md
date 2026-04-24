@@ -59,7 +59,8 @@ These only need to run if the raw CSVs in `data/raw/` are missing or you want to
 | `src/fetch_policy_features.py` | Creates flags for recreational marijuana legalization and governor party | `data/raw/policy/` |
 | `src/fetch_political_features.py` | Computes presidential vote share and governor party streak per state-year | `data/raw/policy/political_features.csv` |
 | `src/parse_nibrs.py` | Parses raw FBI arrest files (fixed-width text 2015–2019, Excel 2020–2022) | same as fetch_nibrs output |
-| `src/parse_teds.py` | Parses the SAMHSA treatment admissions dataset (~1M rows) | `data/raw/teds/teds_2015_2022_combined.csv` |
+| `src/parse_teds.py` | Parses the SAMHSA TEDS-A admissions dataset (~14M rows, 2006–2023). Outputs admission counts plus 8 treatment system rate variables per state-year: CJ referral %, MAT adoption %, opioid/meth case mix, dual diagnosis %, same-day access %, residential %, repeat treatment % | `data/raw/teds/teds_2015_2022_combined.csv` |
+| `src/parse_nsumhss.py` | Parses N-SSATS facility surveys (2015–2020) and N-SUMHSS (2021–2022). Aggregates to state-year: facilities per 100k, beds per 100k, ownership mix (public/nonprofit/for-profit), Medicaid acceptance %, capacity utilization | `data/raw/nsumhss/nsumhss_2015_2022.csv` |
 | `src/parse_bjs.py` | Parses Vera Institute / BJS incarceration data | `data/raw/bjs/bjs_incarceration_2015_2022.csv` |
 | `src/parse_lee.py` | Parses FBI law enforcement employees (police per capita) — **not used in final model** | `data/raw/lee/lee_state_2015_2022.csv` |
 
@@ -67,7 +68,8 @@ These only need to run if the raw CSVs in `data/raw/` are missing or you want to
 
 | File | What it does |
 |---|---|
-| `src/02_data_processing.py` | **Most important.** Merges all sources, removes bad data (Florida 2017–2021, Oregon), computes the Criminalization Index, writes `panel_dataset.csv` |
+| `src/02_data_processing.py` | **Most important.** Merges all sources, removes bad data (Florida 2017–2021, Oregon), computes the Criminalization Index, writes `panel_dataset.csv`. Requires all original raw source files to be present. |
+| `src/02b_augment_panel.py` | **Use this instead of `02_data_processing.py` when raw source files are unavailable.** Loads the existing `panel_dataset.csv` as a base and merges in new TEDS-A and N-SUMHSS columns without requiring NIBRS, ACS, BJS, or other original sources. Run order: `parse_teds.py` → `parse_nsumhss.py` → `02b_augment_panel.py` |
 | `src/03_eda.py` | Loads panel dataset, produces exploratory charts and `eda_summary.txt` |
 | `src/04_modeling.py` | Trains 5 models with cross-validation, runs hyperparameter tuning, writes `model_results.txt` |
 | `src/05_visualizations.py` | Produces 5 final polished Plotly charts |
@@ -75,7 +77,7 @@ These only need to run if the raw CSVs in `data/raw/` are missing or you want to
 
 ### Key Data File
 
-`data/processed/panel_dataset.csv` — **377 rows** (state-year observations), **49 states** (Oregon excluded), **2015–2022**. Every downstream script reads only this file. Never edit it by hand — regenerate it by re-running `02_data_processing.py`.
+`data/processed/panel_dataset.csv` — **392 rows** (state-year observations), **49 states** (Oregon excluded), **2015–2022**, **41 columns**. Includes original arrest/treatment/demographic/policy variables plus 8 TEDS-A treatment system variables and 6 N-SSATS/N-SUMHSS facility supply variables. Every downstream script reads only this file. Never edit it by hand — regenerate with `02_data_processing.py` (if all raw sources are available) or `02b_augment_panel.py` (if only the base panel is available).
 
 ---
 
@@ -190,7 +192,7 @@ This guide explains how to run all analysis for the Drug Policy Criminalization 
 
 Make sure you have the required packages installed:
 ```bash
-pip install pandas numpy scikit-learn statsmodels xgboost plotly seaborn matplotlib us
+pip install pandas numpy scikit-learn statsmodels xgboost plotly seaborn matplotlib us shap
 ```
 
 Ensure the processed dataset exists at: `./data/processed/panel_dataset.csv`
@@ -198,6 +200,13 @@ Ensure the processed dataset exists at: `./data/processed/panel_dataset.csv`
 If not, run the data processing script first:
 ```bash
 python src/02_data_processing.py
+```
+
+If the original raw source files (NIBRS, ACS, BJS, etc.) are not available — which is the case for this repo — run the augment script instead after first running the two parsers:
+```bash
+python src/parse_teds.py        # requires data/raw/teds/tedsa_puf_2006_2023.csv
+python src/parse_nsumhss.py     # requires N-SSATS/N-SUMHSS files in data/raw/
+python src/02b_augment_panel.py # merges new columns into existing panel_dataset.csv
 ```
 
 ## Data Retrieval
@@ -277,7 +286,7 @@ Test different feature sets:
 2. Run the feature engineering cell
 3. Record: number of features, target mean/std
 
-**Extended features** (28 features — demographics + policy + interactions):
+**Extended features** (41 features — demographics + policy + treatment system + facility supply + interactions):
 1. Set `FEATURES_SET = "extended"`
 2. Run the feature engineering cell
 3. Compare feature counts and model R² in Part 5
@@ -378,6 +387,20 @@ All outputs are saved to the `outputs/` directory:
 | `viz4_scatter_final.html` | Top predictor scatter with OLS trendline |
 | `viz5_state_rankings.html` | State rankings bar chart |
 | `fig3_feature_importance.png` | Static feature importance + predicted vs actual |
+| `shap_scatter_poverty.png` | SHAP scatter: poverty effect by political lean |
+| `shap_beeswarm.png` | SHAP beeswarm: all features ranked by directional impact |
+| `residuals_by_state.png` | States over/under-criminalized vs. model predictions |
+| `viz_residuals_choropleth.html` | Residual deviation choropleth |
+| `poverty_by_political_lean.png` | Poverty slope divergence by political lean |
+| `viz_poverty_slope_choropleth.html` | Per-state poverty → criminalization slope |
+| `tx_mat_by_state.html` | MAT adoption rate ranked by state (PART 3b) |
+| `tx_cj_vs_index.html` | Court referrals vs. criminalization index scatter (PART 3b) |
+| `tx_facilities_choropleth.html` | Treatment centers per 100k choropleth (PART 3b) |
+| `tx_mat_vs_overdose.html` | MAT adoption vs. overdose death rate scatter (PART 3b) |
+| `tx_ownership_mix.html` | Public/nonprofit/for-profit facility ownership by state (PART 3c) |
+| `tx_supply_gap.png` | Bed supply vs. overdose need gap by state (PART 3c) |
+| `tx_capacity_utilization.html` | Average bed occupancy by state (PART 3c) |
+| `tx_forprofit_vs_medicaid.html` | For-profit share vs. Medicaid acceptance scatter (PART 3c) |
 | `eda_summary.txt` | EDA text summary |
 | `model_results.txt` | Model comparison metrics |
 
